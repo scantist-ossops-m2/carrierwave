@@ -347,15 +347,9 @@ module CarrierWave
 
     def create_info_block(options)
       return nil unless options
-      proc do |img|
-        options.each do |k, v|
-          if v.is_a?(String) && (matches = v.match(/^["'](.+)["']/))
-            ActiveSupport::Deprecation.warn "Passing quoted strings like #{v} to #manipulate! is deprecated, pass them without quoting."
-            v = matches[1]
-          end
-          img.public_send(:"#{k}=", v)
-        end
-      end
+      assignments = options.map { |k, v| "self.#{k} = #{v}" }
+      code = "lambda { |img| " + assignments.join(";") + "}"
+      eval code
     end
 
     def destroy_image(image)
